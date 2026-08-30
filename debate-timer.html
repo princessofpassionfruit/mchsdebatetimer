@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Debate Timer">
+<title>Debate Timer</title>
+<style>
+  :root{
+    --paper-1: #fdf1f5;
+    --paper-2: #f9e3ec;
+    --card: #fffcfd;
+    --rose: #cd7d9b;
+    --rose-deep: #a4536f;
+    --rose-pale: #f8dfe9;
+    --line: #ecccdb;
+    --gold: #c6a066;
+    --ink: #4a3038;
+    --ink-soft: #93758a;
+    --yellow: #b8873c;
+    --yellow-bg: #faf0dc;
+    --red: #b1505f;
+    --red-bg: #f8e2e6;
+    --shadow: 0 16px 34px rgba(164, 83, 111, 0.14);
+    --radius: 20px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --font-script: "Snell Roundhand", "Apple Chancery", "Segoe Script", cursive;
+    --font-serif: "Baskerville", "Palatino", Georgia, "Times New Roman", serif;
+    --font-display: "Didot", "Baskerville", Georgia, serif;
+  }
+
+  *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body{
+    margin:0; padding:0; height:100%;
+    color: var(--ink);
+    overscroll-behavior-y: none;
+  }
+
+  body{
+    display:flex; flex-direction:column;
+    padding-top: calc(var(--safe-top) + 12px);
+    padding-bottom: calc(var(--safe-bottom) + 12px);
+    min-height: 100vh;
+    font-family: var(--font-serif);
+    background:
+      radial-gradient(circle at 15% 8%, rgba(255,255,255,0.65), transparent 42%),
+      linear-gradient(165deg, var(--paper-1), var(--paper-2) 85%);
+    position: relative;
+  }
+
+  body::before{
+    content:"";
+    position: fixed;
+    inset: 0;
+    background-image: radial-gradient(rgba(164, 83, 111, 0.07) 1px, transparent 1px);
+    background-size: 15px 15px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app{ position: relative; z-index: 1; max-width: 480px; margin: 0 auto; width:100%; padding: 0 16px; display:flex; flex-direction:column; gap:13px; flex:1; }
+
+  .title-block{ text-align:center; padding-top: 2px; }
+
+  h1{
+    font-family: var(--font-script);
+    font-weight: 400;
+    font-size: 3.4rem;
+    margin: 0;
+    color: var(--rose-deep);
+    line-height: 1;
+  }
+
+  .flourish{ display:flex; justify-content:center; margin: 2px 0; }
+  .flourish svg{ width: 130px; height: 20px; overflow: visible; }
+  .flourish-line{ stroke: var(--gold); stroke-width: 1.3; fill: none; stroke-linecap: round; opacity: 0.75; }
+  .flourish-dot{ fill: var(--gold); opacity: 0.85; }
+
+  .subtitle{
+    text-align:center;
+    font-style: italic;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+  }
+
+  .style-tabs{
+    display:flex; gap:4px; overflow-x:auto; padding: 2px 2px 6px;
+    scrollbar-width:none;
+    border-bottom: 1px solid var(--line);
+  }
+  .style-tabs::-webkit-scrollbar{ display:none; }
+  .style-tab{
+    flex: 0 0 auto;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 7px 10px;
+    font-family: var(--font-serif);
+    font-weight: 600;
+    font-size: 0.88rem;
+    letter-spacing: 0.2px;
+    color: var(--ink-soft);
+  }
+  .style-tab.active{
+    color: var(--rose-deep);
+    border-bottom-color: var(--gold);
+  }
+
+  .card{
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 16px;
+  }
+
+  .motion-input{
+    width:100%;
+    border: none;
+    background: transparent;
+    font-family: var(--font-serif);
+    font-size: 1.02rem;
+    font-weight: 600;
+    font-style: italic;
+    color: var(--ink);
+    text-align:center;
+    outline:none;
+  }
+  .motion-input::placeholder{ color: var(--ink-soft); }
+  .motion-card{ padding: 12px 16px; }
+
+  .speaker-row{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .speaker-nav-btn{
+    background: var(--rose-pale);
+    border: 1px solid var(--line);
+    color: var(--rose-deep);
+    width: 34px; height:34px;
+    border-radius: 50%;
+    font-size: 1.15rem;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .speaker-nav-btn:active{ background: var(--rose); color:white; }
+  .speaker-name{
+    flex:1;
+    text-align:center;
+    font-style: italic;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--rose-deep);
+  }
+  .speaker-index{
+    text-align:center;
+    font-variant-caps: small-caps;
+    letter-spacing: 0.6px;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    margin-top: 2px;
+  }
+
+  .timer-card{
+    display:flex; flex-direction:column; align-items:center;
+    padding: 20px 14px 22px;
+    transition: background 0.3s ease;
+  }
+  .timer-card.state-yellow{ background: var(--yellow-bg); }
+  .timer-card.state-red{ background: var(--red-bg); }
+
+  .timer-ring-wrap{
+    position: relative;
+    width: 200px;
+    height: 200px;
+    margin: 2px auto 4px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .ring-svg{ position:absolute; inset:0; width:100%; height:100%; }
+  .ring-track{ stroke: var(--rose-pale); }
+  .ring-progress{
+    stroke: var(--rose-deep);
+    transition: stroke-dashoffset 1s linear, stroke 0.3s ease;
+  }
+  .ring-progress.state-yellow{ stroke: var(--yellow); }
+  .ring-progress.state-red{ stroke: var(--red); }
+
+  .timer-center{
+    position: relative; z-index: 2;
+    display:flex; flex-direction:column; align-items:center;
+    padding: 0 12px; text-align:center;
+  }
+
+  .timer-display{
+    font-family: var(--font-display);
+    font-variant-numeric: tabular-nums;
+    font-size: 2.7rem;
+    font-weight: 700;
+    color: var(--rose-deep);
+    transition: color 0.3s ease;
+    line-height:1;
+  }
+  .timer-card.state-yellow .timer-display{ color: var(--yellow); }
+  .timer-card.state-red .timer-display{ color: var(--red); }
+
+  .timer-sub{
+    margin-top: 6px;
+    font-variant-caps: small-caps;
+    letter-spacing: 0.5px;
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+  }
+
+  .poi-marker-note{
+    margin-top: 6px;
+    font-style: italic;
+    font-size: 0.85rem;
+    color: var(--rose);
+    font-weight: 600;
+    min-height: 1.1em;
+  }
+
+  .timer-controls{
+    display:flex; gap:10px; margin-top: 16px; width:100%;
+  }
+  .btn{
+    flex:1;
+    border:none;
+    padding: 13px 8px;
+    border-radius: 13px;
+    font-family: var(--font-serif);
+    font-size: 1.03rem;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    color:white;
+    background: var(--rose);
+    box-shadow: 0 6px 14px rgba(164, 83, 111, 0.25);
+    display:flex; align-items:center; justify-content:center; gap:6px;
+  }
+  .btn:active{ background: var(--rose-deep); }
+  .btn.secondary{ background: var(--rose-pale); color: var(--rose-deep); box-shadow:none; border: 1px solid var(--line); }
+  .btn.secondary:active{ background: var(--line); }
+  .btn.wide{ flex: 1 1 100%; }
+  .btn:disabled{ opacity: 0.45; }
+
+  .speaker-skip-row{ display:flex; gap:10px; margin-top:10px; }
+
+  .poi-section{ display:flex; flex-direction:column; gap:10px; }
+  .poi-btn-row{ display:flex; gap:10px; align-items:center; }
+  .poi-btn{
+    flex:1;
+    background: var(--rose-deep);
+    color:white;
+    border:none;
+    border-radius: 13px;
+    padding: 12px;
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 0.97rem;
+  }
+  .poi-btn:active{ background:#8a4360; }
+  .poi-count{
+    font-style: italic;
+    font-size: 0.84rem;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+  .poi-overlay{
+    position: fixed;
+    top: calc(var(--safe-top) + 14px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--rose-deep);
+    color: white;
+    padding: 10px 24px;
+    border-radius: 999px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.35rem;
+    box-shadow: 0 10px 22px rgba(0,0,0,0.22);
+    z-index: 50;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .section-label{
+    font-variant-caps: small-caps;
+    font-weight: 700;
+    letter-spacing: 1px;
+    font-size: 0.86rem;
+    color: var(--rose-deep);
+    margin: 2px 0 8px 2px;
+  }
+  .section-label::before{ content: "✦ "; color: var(--gold); }
+
+  .tool-tabs-card{ padding-top: 12px; }
+  .tool-tab-row{
+    display:flex; gap:14px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 12px;
+  }
+  .tool-tab{
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 4px 2px 9px;
+    font-variant-caps: small-caps;
+    letter-spacing: 0.6px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--ink-soft);
+  }
+  .tool-tab.active{ color: var(--rose-deep); border-bottom-color: var(--gold); }
+  .tool-panel.hidden{ display:none; }
+
+  .prep-row{ display:flex; gap:8px; align-items:center; }
+  .prep-time{
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--rose-deep);
+    font-variant-numeric: tabular-nums;
+    min-width: 80px;
+    text-align:center;
+  }
+  .prep-presets{ display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+  .prep-preset{
+    background: var(--rose-pale);
+    border: 1px solid var(--line);
+    color: var(--rose-deep);
+    padding: 6px 13px;
+    border-radius: 999px;
+    font-family: var(--font-serif);
+    font-size: 0.84rem;
+    font-weight: 700;
+  }
+  .prep-preset.active{ background: var(--rose); border-color: var(--rose); color:white; }
+
+  textarea.scratchpad{
+    width:100%;
+    min-height: 84px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 12px 14px;
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    color: var(--ink);
+    background: #fffafc;
+    resize: vertical;
+    outline:none;
+  }
+  textarea.scratchpad::placeholder{ font-style: italic; color: var(--ink-soft); }
+  textarea.scratchpad:focus{ border-color: var(--rose); }
+
+  .notes-actions{ display:flex; justify-content:flex-end; margin-top: 8px; }
+  .copy-btn{
+    background: var(--rose-pale);
+    border: 1px solid var(--line);
+    color: var(--rose-deep);
+    border-radius: 10px;
+    padding: 6px 13px;
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 0.82rem;
+  }
+  .copy-btn:active{ background: var(--line); }
+
+  .custom-setup{ display:flex; flex-direction:column; gap:10px; }
+  .custom-row{ display:flex; gap:8px; align-items:center; }
+  .custom-row input[type="text"], .custom-row input[type="number"]{
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 8px 10px;
+    font-family: var(--font-serif);
+    font-size: 0.95rem;
+    color: var(--ink);
+    background: #fffafc;
+    outline:none;
+  }
+  .custom-row input[type="text"]{ flex:1; }
+  .custom-row input[type="number"]{ width: 64px; }
+  .custom-row .small-label{ font-style: italic; font-size:0.82rem; color: var(--ink-soft); }
+  .remove-speaker-btn{
+    background: var(--red-bg); color: var(--red);
+    border:none; border-radius: 8px; width:28px; height:28px; font-weight:700;
+  }
+  .add-speaker-btn, .apply-custom-btn{
+    background: var(--rose); color:white; border:none;
+    border-radius: 12px; padding: 11px; font-family: var(--font-serif); font-weight:700; font-size:0.95rem;
+  }
+  .apply-custom-btn:active, .add-speaker-btn:active{ background: var(--rose-deep); }
+
+  .mute-toggle{
+    display:flex; align-items:center; justify-content:center; gap:7px;
+    font-style: italic;
+    font-size: 0.87rem; color: var(--ink-soft);
+    margin-top: 2px;
+  }
+  .mute-toggle input{ accent-color: var(--rose); }
+
+  .flash-overlay{
+    position: fixed; inset:0; pointer-events:none; z-index:60; opacity:0;
+  }
+  .flash-overlay.gold{ background: radial-gradient(circle, rgba(255,250,235,0.95), rgba(198,160,102,0.5)); animation: flashPulse 0.5s ease-out; }
+  .flash-overlay.red{ background: radial-gradient(circle, rgba(255,235,235,0.95), rgba(177,80,95,0.55)); animation: flashPulse 0.5s ease-out; }
+  @keyframes flashPulse{ 0%{opacity:0;} 15%{opacity:0.85;} 100%{opacity:0;} }
+
+  .hidden{ display:none !important; }
+
+  ::-webkit-scrollbar{ width:0; height:0; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="title-block">
+    <h1>Debate Timer</h1>
+    <div class="flourish" aria-hidden="true">
+      <svg viewBox="0 0 200 30" xmlns="http://www.w3.org/2000/svg">
+        <path class="flourish-line" d="M6 15 C 55 -4, 78 34, 100 15 C 122 -4, 145 34, 194 15"/>
+        <circle class="flourish-dot" cx="100" cy="15" r="2.6"/>
+      </svg>
+    </div>
+    <div class="subtitle">created by the amazing Miraaya Sharma just for you ♥</div>
+  </div>
+
+  <div class="style-tabs" id="styleTabs"></div>
+
+  <div class="card motion-card">
+    <input class="motion-input" id="motionInput" placeholder="Type the motion here…" />
+  </div>
+
+  <div id="customSetup" class="card custom-setup hidden">
+    <div class="section-label">Custom format</div>
+    <div id="customSpeakerList"></div>
+    <button class="add-speaker-btn" id="addSpeakerBtn">+ Add speaker</button>
+    <button class="apply-custom-btn" id="applyCustomBtn">Apply custom format</button>
+  </div>
+
+  <div class="card">
+    <div class="speaker-row">
+      <button class="speaker-nav-btn" id="prevSpeakerBtn">‹</button>
+      <div>
+        <div class="speaker-name" id="speakerName">Speaker</div>
+        <div class="speaker-index" id="speakerIndex"></div>
+      </div>
+      <button class="speaker-nav-btn" id="nextSpeakerBtn">›</button>
+    </div>
+  </div>
+
+  <div class="card timer-card" id="timerCard">
+    <div class="timer-ring-wrap">
+      <svg class="ring-svg" viewBox="0 0 200 200" aria-hidden="true">
+        <circle class="ring-track" cx="100" cy="100" r="88" stroke-width="12" fill="none"/>
+        <circle class="ring-progress" id="ringProgress" cx="100" cy="100" r="88" stroke-width="12" fill="none" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+      </svg>
+      <div class="timer-center">
+        <div class="timer-display" id="timerDisplay">5:00</div>
+        <div class="timer-sub" id="timerSub">British Parliamentary (School) · 5:00</div>
+      </div>
+    </div>
+    <div class="poi-marker-note" id="markerNote"></div>
+    <div class="timer-controls">
+      <button class="btn" id="startPauseBtn">▶ Start</button>
+      <button class="btn secondary" id="resetBtn">↺ Reset</button>
+    </div>
+    <div class="speaker-skip-row">
+      <button class="btn secondary wide" id="nextSpeechBtn">Next speaker →</button>
+    </div>
+  </div>
+
+  <div class="card poi-section">
+    <div class="section-label">Points of Information</div>
+    <div class="poi-btn-row">
+      <button class="poi-btn" id="poiBtn">Start 15s POI</button>
+      <span class="poi-count" id="poiCount">0 used</span>
+    </div>
+  </div>
+
+  <div class="card tool-tabs-card">
+    <div class="tool-tab-row">
+      <button class="tool-tab active" id="prepTabBtn">Prep Timer</button>
+      <button class="tool-tab" id="notesTabBtn">Notes</button>
+    </div>
+
+    <div class="tool-panel" id="prepPanel">
+      <div class="prep-row">
+        <div class="prep-time" id="prepTime">15:00</div>
+        <button class="btn" id="prepStartBtn" style="flex:0 0 auto; padding:10px 16px;">▶</button>
+        <button class="btn secondary" id="prepResetBtn" style="flex:0 0 auto; padding:10px 16px;">↺</button>
+      </div>
+      <div class="prep-presets" id="prepPresets"></div>
+    </div>
+
+    <div class="tool-panel hidden" id="notesPanel">
+      <textarea class="scratchpad" id="scratchpad" placeholder="Quick notes…"></textarea>
+      <div class="notes-actions">
+        <button class="copy-btn" id="copyNotesBtn">Copy notes</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="padding:10px 16px;">
+    <div class="mute-toggle">
+      <input type="checkbox" id="muteToggle" />
+      <label for="muteToggle">Mute sounds</label>
+    </div>
+  </div>
+</div>
+
+<div class="poi-overlay hidden" id="poiOverlay">15</div>
+<div class="flash-overlay" id="flashOverlay"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  let audioCtx = null;
+  function getCtx(){
+    if(!audioCtx){ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+  function isMuted(){ return document.getElementById('muteToggle').checked; }
+
+  function tone(freq, duration, type, gainVal, delay){
+    if(isMuted()) return;
+    const ctx = getCtx();
+    const t0 = ctx.currentTime + (delay||0);
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type || 'sine';
+    osc.frequency.setValueAtTime(freq, t0);
+    gain.gain.setValueAtTime(0, t0);
+    gain.gain.linearRampToValueAtTime(gainVal||0.3, t0 + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(t0);
+    osc.stop(t0 + duration + 0.05);
+  }
+
+  function playMarkerChime(){ tone(880, 0.35, 'sine', 0.25); tone(1318.5, 0.35, 'sine', 0.15, 0.05); }
+  function playWarningBell(){ tone(660, 0.5, 'triangle', 0.3); }
+  function playOvertimeBell(){ tone(523.25, 0.4, 'square', 0.25); tone(523.25, 0.4, 'square', 0.25, 0.25); }
+  function playGavel(){
+    if(isMuted()) return;
+    const ctx = getCtx();
+    const t0 = ctx.currentTime;
+    const bufferSize = ctx.sampleRate * 0.08;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for(let i=0;i<bufferSize;i++){ data[i] = (Math.random()*2-1) * Math.pow(1 - i/bufferSize, 3); }
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 700;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.6, t0);
+    gain.gain.exponentialRampToValueAtTime(0.001, t0+0.3);
+    noise.connect(filter).connect(gain).connect(ctx.destination);
+    noise.start(t0);
+    tone(150, 0.25, 'sine', 0.3, 0.01);
+  }
+  function playPoiEnd(){ tone(1046.5, 0.3, 'sine', 0.3); }
+
+  const flashOverlay = document.getElementById('flashOverlay');
+  function flashScreen(kind){
+    flashOverlay.classList.remove('gold','red');
+    void flashOverlay.offsetWidth;
+    flashOverlay.classList.add(kind);
+    setTimeout(() => { flashOverlay.classList.remove(kind); }, 520);
+  }
+
+  function buzz(pattern){
+    try{
+      if('vibrate' in navigator){ navigator.vibrate(pattern); }
+    }catch(e){}
+  }
+
+  const FORMATS = {
+    bp_school: {
+      label: "BP (School)",
+      fullLabel: "British Parliamentary — School",
+      seconds: 300,
+      speakers: ["Prime Minister","Deputy PM","Leader of Opposition","Deputy Leader of Opp.","Member for the Government","Member for the Opposition","Government Whip","Opposition Whip"],
+      poiWindowStart: 60,
+      poiWindowEnd: 240
+    },
+    bp_uni: {
+      label: "BP (University)",
+      fullLabel: "British Parliamentary — University",
+      seconds: 420,
+      speakers: ["Prime Minister","Deputy PM","Leader of Opposition","Deputy Leader of Opp.","Member for the Government","Member for the Opposition","Government Whip","Opposition Whip"],
+      poiWindowStart: 60,
+      poiWindowEnd: 360
+    },
+    ld: {
+      label: "Lincoln-Douglas",
+      fullLabel: "Lincoln–Douglas",
+      seconds: 360,
+      speakers: ["Affirmative Constructive (6:00)","Negative Cross-Ex (3:00)","Negative Constructive (7:00)","Affirmative Cross-Ex (3:00)","1st Affirmative Rebuttal (4:00)","Negative Rebuttal (6:00)","2nd Affirmative Rebuttal (3:00)"],
+      speakerSeconds: [360,180,420,180,240,360,180],
+      poiWindowStart: null,
+      poiWindowEnd: null
+    },
+    pf: {
+      label: "Public Forum",
+      fullLabel: "Public Forum",
+      seconds: 240,
+      speakers: ["Team A — Constructive","Team B — Constructive","Team A — Rebuttal","Team B — Rebuttal","Team A — Summary","Team B — Summary","Crossfire","Team A — Final Focus","Team B — Final Focus"],
+      speakerSeconds: [240,240,240,240,180,180,240,120,120],
+      poiWindowStart: null,
+      poiWindowEnd: null
+    },
+    custom: {
+      label: "Custom",
+      fullLabel: "Custom format",
+      seconds: 300,
+      speakers: ["Speaker 1"],
+      speakerSeconds: [300],
+      poiWindowStart: null,
+      poiWindowEnd: null
+    }
+  };
+
+  let currentFormatKey = 'bp_school';
+  let currentSpeakerIdx = 0;
+
+  let mainSeconds = FORMATS[currentFormatKey].seconds;
+  let mainRemaining = mainSeconds;
+  let mainRunning = false;
+  let mainInterval = null;
+  let warnedYellow = false;
+  let warnedRed = false;
+  let poiChimePlayed = new Set();
+
+  let prepTotal = 15*60;
+  let prepRemaining = prepTotal;
+  let prepRunning = false;
+  let prepInterval = null;
+
+  let poiRunning = false;
+  let poiRemaining = 15;
+  let poiInterval = null;
+  let poiUsedCount = 0;
+
+  const styleTabs = document.getElementById('styleTabs');
+  const customSetup = document.getElementById('customSetup');
+  const customSpeakerList = document.getElementById('customSpeakerList');
+  const addSpeakerBtn = document.getElementById('addSpeakerBtn');
+  const applyCustomBtn = document.getElementById('applyCustomBtn');
+
+  const speakerName = document.getElementById('speakerName');
+  const speakerIndex = document.getElementById('speakerIndex');
+  const prevSpeakerBtn = document.getElementById('prevSpeakerBtn');
+  const nextSpeakerBtn = document.getElementById('nextSpeakerBtn');
+  const nextSpeechBtn = document.getElementById('nextSpeechBtn');
+
+  const timerCard = document.getElementById('timerCard');
+  const ringProgress = document.getElementById('ringProgress');
+  const timerDisplay = document.getElementById('timerDisplay');
+  const timerSub = document.getElementById('timerSub');
+  const markerNote = document.getElementById('markerNote');
+  const startPauseBtn = document.getElementById('startPauseBtn');
+  const resetBtn = document.getElementById('resetBtn');
+
+  const poiBtn = document.getElementById('poiBtn');
+  const poiCount = document.getElementById('poiCount');
+  const poiOverlay = document.getElementById('poiOverlay');
+
+  const prepTabBtn = document.getElementById('prepTabBtn');
+  const notesTabBtn = document.getElementById('notesTabBtn');
+  const prepPanel = document.getElementById('prepPanel');
+  const notesPanel = document.getElementById('notesPanel');
+
+  const prepTimeEl = document.getElementById('prepTime');
+  const prepStartBtn = document.getElementById('prepStartBtn');
+  const prepResetBtn = document.getElementById('prepResetBtn');
+  const prepPresets = document.getElementById('prepPresets');
+
+  const motionInput = document.getElementById('motionInput');
+  const scratchpad = document.getElementById('scratchpad');
+  const copyNotesBtn = document.getElementById('copyNotesBtn');
+
+  prepTabBtn.addEventListener('click', () => {
+    prepTabBtn.classList.add('active');
+    notesTabBtn.classList.remove('active');
+    prepPanel.classList.remove('hidden');
+    notesPanel.classList.add('hidden');
+  });
+  notesTabBtn.addEventListener('click', () => {
+    notesTabBtn.classList.add('active');
+    prepTabBtn.classList.remove('active');
+    notesPanel.classList.remove('hidden');
+    prepPanel.classList.add('hidden');
+  });
+
+  copyNotesBtn.addEventListener('click', async () => {
+    const text = scratchpad.value;
+    try{
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        await navigator.clipboard.writeText(text);
+      } else {
+        scratchpad.select();
+        document.execCommand('copy');
+      }
+    }catch(e){
+      scratchpad.select();
+      document.execCommand('copy');
+    }
+    copyNotesBtn.textContent = 'Copied!';
+    setTimeout(() => { copyNotesBtn.textContent = 'Copy notes'; }, 1400);
+  });
+
+  function buildTabs(){
+    styleTabs.innerHTML = '';
+    Object.keys(FORMATS).forEach(key => {
+      const btn = document.createElement('button');
+      btn.className = 'style-tab' + (key === currentFormatKey ? ' active' : '');
+      btn.textContent = FORMATS[key].label;
+      btn.addEventListener('click', () => selectFormat(key));
+      styleTabs.appendChild(btn);
+    });
+  }
+
+  function selectFormat(key){
+    stopMainTimer();
+    currentFormatKey = key;
+    currentSpeakerIdx = 0;
+    customSetup.classList.toggle('hidden', key !== 'custom');
+    if(key === 'custom' && customSpeakerList.children.length === 0){
+      addCustomSpeakerRow('Speaker 1', 300);
+    }
+    buildTabs();
+    loadSpeaker(0);
+  }
+
+  function addCustomSpeakerRow(name, secs){
+    const row = document.createElement('div');
+    row.className = 'custom-row';
+    row.innerHTML = `
+      <input type="text" class="cs-name" value="${name || ''}" placeholder="Speaker name">
+      <input type="number" class="cs-mins" min="0" value="${Math.floor((secs||300)/60)}">
+      <span class="small-label">min</span>
+      <input type="number" class="cs-secs" min="0" max="59" value="${(secs||300)%60}">
+      <span class="small-label">sec</span>
+      <button class="remove-speaker-btn">×</button>
+    `;
+    row.querySelector('.remove-speaker-btn').addEventListener('click', () => {
+      row.remove();
+    });
+    customSpeakerList.appendChild(row);
+  }
+
+  addSpeakerBtn.addEventListener('click', () => {
+    const n = customSpeakerList.children.length + 1;
+    addCustomSpeakerRow('Speaker ' + n, 300);
+  });
+
+  applyCustomBtn.addEventListener('click', () => {
+    const rows = Array.from(customSpeakerList.querySelectorAll('.custom-row'));
+    if(rows.length === 0) return;
+    const names = [];
+    const secsArr = [];
+    rows.forEach(r => {
+      const name = r.querySelector('.cs-name').value.trim() || 'Speaker';
+      const mins = parseInt(r.querySelector('.cs-mins').value) || 0;
+      const secs = parseInt(r.querySelector('.cs-secs').value) || 0;
+      names.push(name);
+      secsArr.push(mins*60 + secs);
+    });
+    FORMATS.custom.speakers = names;
+    FORMATS.custom.speakerSeconds = secsArr;
+    FORMATS.custom.seconds = secsArr[0];
+    currentSpeakerIdx = 0;
+    loadSpeaker(0);
+  });
+
+  function getSpeakerSeconds(fmt, idx){
+    if(fmt.speakerSeconds && fmt.speakerSeconds.length > idx){
+      return fmt.speakerSeconds[idx];
+    }
+    return fmt.seconds;
+  }
+
+  const RING_R = 88;
+  const RING_CIRC = 2 * Math.PI * RING_R;
+
+  function updateRing(){
+    let remainingFraction = mainSeconds > 0 ? mainRemaining / mainSeconds : 0;
+    if(remainingFraction < 0) remainingFraction = 0;
+    if(remainingFraction > 1) remainingFraction = 1;
+    const offset = RING_CIRC * (1 - remainingFraction);
+    ringProgress.style.strokeDasharray = RING_CIRC;
+    ringProgress.style.strokeDashoffset = offset;
+  }
+
+  function setCardState(state){
+    timerCard.classList.remove('state-yellow','state-red');
+    ringProgress.classList.remove('state-yellow','state-red');
+    if(state){
+      timerCard.classList.add(state);
+      ringProgress.classList.add(state);
+    }
+  }
+
+  function loadSpeaker(idx){
+    const fmt = FORMATS[currentFormatKey];
+    const speakers = fmt.speakers;
+    if(idx < 0) idx = 0;
+    if(idx > speakers.length - 1) idx = speakers.length - 1;
+    currentSpeakerIdx = idx;
+    speakerName.textContent = speakers[idx];
+    speakerIndex.textContent = `${idx+1} of ${speakers.length} · ${fmt.fullLabel}`;
+    mainSeconds = getSpeakerSeconds(fmt, idx);
+    mainRemaining = mainSeconds;
+    warnedYellow = false;
+    warnedRed = false;
+    poiChimePlayed.clear();
+    updateTimerDisplay();
+    updateTimerSub();
+    markerNote.textContent = '';
+    setCardState(null);
+  }
+
+  prevSpeakerBtn.addEventListener('click', () => { stopMainTimer(); loadSpeaker(currentSpeakerIdx - 1); });
+  nextSpeakerBtn.addEventListener('click', () => { stopMainTimer(); loadSpeaker(currentSpeakerIdx + 1); });
+  nextSpeechBtn.addEventListener('click', () => {
+    stopMainTimer();
+    const fmt = FORMATS[currentFormatKey];
+    if(currentSpeakerIdx < fmt.speakers.length - 1){
+      loadSpeaker(currentSpeakerIdx + 1);
+    } else {
+      loadSpeaker(0);
+    }
+  });
+
+  function fmtTime(totalSeconds){
+    const neg = totalSeconds < 0;
+    const abs = Math.abs(totalSeconds);
+    const m = Math.floor(abs/60);
+    const s = abs % 60;
+    return (neg ? '-' : '') + m + ':' + String(s).padStart(2,'0');
+  }
+
+  function updateTimerDisplay(){
+    timerDisplay.textContent = fmtTime(mainRemaining);
+    updateRing();
+  }
+
+  function updateTimerSub(){
+    const fmt = FORMATS[currentFormatKey];
+    timerSub.textContent = `${fmt.fullLabel} · ${fmtTime(mainSeconds)}`;
+  }
+
+  function checkMarkers(elapsed){
+    const fmt = FORMATS[currentFormatKey];
+    if(mainRemaining <= 0 && !warnedYellow){
+      warnedYellow = true;
+      setCardState('state-yellow');
+      playWarningBell();
+      markerNote.textContent = "Time's up!";
+    }
+    if(mainRemaining <= -15 && !warnedRed){
+      warnedRed = true;
+      setCardState('state-red');
+      playOvertimeBell();
+      flashScreen('red');
+      buzz([250,100,250]);
+      markerNote.textContent = "15s over — wrap up";
+    }
+    if(fmt.poiWindowStart != null){
+      if(elapsed === fmt.poiWindowStart && !poiChimePlayed.has('open')){
+        poiChimePlayed.add('open');
+        playMarkerChime();
+        flashScreen('gold');
+        markerNote.textContent = 'POIs now open';
+      }
+      if(elapsed === fmt.poiWindowEnd && !poiChimePlayed.has('close')){
+        poiChimePlayed.add('close');
+        playMarkerChime();
+        flashScreen('gold');
+        markerNote.textContent = 'POIs now closed';
+      }
+    }
+  }
+
+  function tickMain(){
+    mainRemaining -= 1;
+    const elapsed = mainSeconds - mainRemaining;
+    updateTimerDisplay();
+    checkMarkers(elapsed);
+  }
+
+  function startMainTimer(){
+    if(mainRunning) return;
+    getCtx();
+    mainRunning = true;
+    startPauseBtn.textContent = '⏸ Pause';
+    mainInterval = setInterval(tickMain, 1000);
+  }
+  function pauseMainTimer(){
+    mainRunning = false;
+    startPauseBtn.textContent = '▶ Start';
+    clearInterval(mainInterval);
+  }
+  function stopMainTimer(){
+    pauseMainTimer();
+  }
+
+  startPauseBtn.addEventListener('click', () => {
+    if(mainRunning) pauseMainTimer(); else startMainTimer();
+  });
+
+  resetBtn.addEventListener('click', () => {
+    stopMainTimer();
+    mainRemaining = mainSeconds;
+    warnedYellow = false; warnedRed = false;
+    poiChimePlayed.clear();
+    setCardState(null);
+    markerNote.textContent = '';
+    updateTimerDisplay();
+  });
+
+  function startPoi(){
+    if(poiRunning) return;
+    getCtx();
+    poiRunning = true;
+    poiRemaining = 15;
+    poiOverlay.textContent = poiRemaining;
+    poiOverlay.classList.remove('hidden');
+    playMarkerChime();
+    flashScreen('gold');
+    poiInterval = setInterval(() => {
+      poiRemaining -= 1;
+      if(poiRemaining <= 0){
+        poiOverlay.textContent = '0';
+        playPoiEnd();
+        flashScreen('gold');
+        clearInterval(poiInterval);
+        poiRunning = false;
+        poiUsedCount += 1;
+        poiCount.textContent = poiUsedCount + ' used';
+        setTimeout(() => poiOverlay.classList.add('hidden'), 600);
+      } else {
+        poiOverlay.textContent = poiRemaining;
+      }
+    }, 1000);
+  }
+  poiBtn.addEventListener('click', startPoi);
+
+  function fmtPrep(s){
+    const m = Math.floor(s/60);
+    const sec = s % 60;
+    return m + ':' + String(sec).padStart(2,'0');
+  }
+  function updatePrepDisplay(){ prepTimeEl.textContent = fmtPrep(Math.max(prepRemaining,0)); }
+
+  const PREP_PRESETS = [3*60, 5*60, 10*60, 15*60, 20*60, 30*60];
+  function buildPrepPresets(){
+    prepPresets.innerHTML = '';
+    PREP_PRESETS.forEach(sec => {
+      const btn = document.createElement('button');
+      btn.className = 'prep-preset' + (sec === prepTotal ? ' active' : '');
+      btn.textContent = fmtPrep(sec);
+      btn.addEventListener('click', () => {
+        stopPrepTimer();
+        prepTotal = sec;
+        prepRemaining = sec;
+        updatePrepDisplay();
+        buildPrepPresets();
+      });
+      prepPresets.appendChild(btn);
+    });
+  }
+
+  function tickPrep(){
+    prepRemaining -= 1;
+    updatePrepDisplay();
+    if(prepRemaining <= 0){
+      clearInterval(prepInterval);
+      prepRunning = false;
+      prepStartBtn.textContent = '▶';
+      playOvertimeBell();
+      buzz([250,100,250]);
+    }
+  }
+  function startPrep(){
+    if(prepRunning) return;
+    getCtx();
+    prepRunning = true;
+    prepStartBtn.textContent = '⏸';
+    prepInterval = setInterval(tickPrep, 1000);
+  }
+  function pausePrep(){
+    prepRunning = false;
+    prepStartBtn.textContent = '▶';
+    clearInterval(prepInterval);
+  }
+  function stopPrepTimer(){ pausePrep(); }
+
+  prepStartBtn.addEventListener('click', () => { if(prepRunning) pausePrep(); else startPrep(); });
+  prepResetBtn.addEventListener('click', () => { stopPrepTimer(); prepRemaining = prepTotal; updatePrepDisplay(); });
+
+  const gavelWrap = document.createElement('div');
+  gavelWrap.className = 'speaker-skip-row';
+  const gavelBtn = document.createElement('button');
+  gavelBtn.className = 'btn secondary wide';
+  gavelBtn.textContent = 'Gavel';
+  gavelBtn.addEventListener('click', playGavel);
+  gavelWrap.appendChild(gavelBtn);
+  timerCard.appendChild(gavelWrap);
+
+  buildTabs();
+  buildPrepPresets();
+  loadSpeaker(0);
+  updatePrepDisplay();
+
+  try{
+    const savedMotion = localStorage.getItem('debateTimerMotion');
+    const savedNotes = localStorage.getItem('debateTimerNotes');
+    if(savedMotion) motionInput.value = savedMotion;
+    if(savedNotes) scratchpad.value = savedNotes;
+    motionInput.addEventListener('input', () => localStorage.setItem('debateTimerMotion', motionInput.value));
+    scratchpad.addEventListener('input', () => localStorage.setItem('debateTimerNotes', scratchpad.value));
+  }catch(e){}
+
+  document.addEventListener('touchstart', function once(){
+    getCtx();
+    document.removeEventListener('touchstart', once);
+  }, {once:true});
+
+})();
+</script>
+</body>
+</html>
