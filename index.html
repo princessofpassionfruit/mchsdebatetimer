@@ -4,8 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Debate Timer">
+<meta name="theme-color" content="#a4536f">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="manifest" href="manifest.json">
 <title>Debate Timer</title>
 <style>
   :root{
@@ -62,14 +66,14 @@
     z-index: 0;
   }
 
-  .app{ position: relative; z-index: 1; max-width: 480px; margin: 0 auto; width:100%; padding: 0 16px; display:flex; flex-direction:column; gap:13px; flex:1; }
+  .app{ position: relative; z-index: 1; max-width: 480px; margin: 0 auto; width:100%; padding: 0 min(16px, 4vw); display:flex; flex-direction:column; gap:13px; flex:1; }
 
   .title-block{ text-align:center; padding-top: 2px; }
 
   h1{
     font-family: var(--font-script);
     font-weight: 400;
-    font-size: 3.4rem;
+    font-size: clamp(2.5rem, 11vw, 3.4rem);
     margin: 0;
     color: var(--rose-deep);
     line-height: 1;
@@ -100,10 +104,10 @@
     background: transparent;
     border: none;
     border-bottom: 2px solid transparent;
-    padding: 7px 10px;
+    padding: 7px 9px;
     font-family: var(--font-serif);
     font-weight: 600;
-    font-size: 0.88rem;
+    font-size: 0.86rem;
     letter-spacing: 0.2px;
     color: var(--ink-soft);
   }
@@ -153,7 +157,7 @@
     flex:1;
     text-align:center;
     font-style: italic;
-    font-size: 1.25rem;
+    font-size: 1.2rem;
     font-weight: 700;
     color: var(--rose-deep);
   }
@@ -161,7 +165,7 @@
     text-align:center;
     font-variant-caps: small-caps;
     letter-spacing: 0.6px;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     color: var(--ink-soft);
     margin-top: 2px;
   }
@@ -176,10 +180,9 @@
 
   .timer-ring-wrap{
     position: relative;
-    width: 200px;
-    height: 200px;
-    margin: 2px auto 4px;
-    display:flex; align-items:center; justify-content:center;
+    width: clamp(168px, 48vw, 200px);
+    height: clamp(168px, 48vw, 200px);
+    margin: 2px auto 0;
   }
   .ring-svg{ position:absolute; inset:0; width:100%; height:100%; }
   .ring-track{ stroke: var(--rose-pale); }
@@ -190,16 +193,13 @@
   .ring-progress.state-yellow{ stroke: var(--yellow); }
   .ring-progress.state-red{ stroke: var(--red); }
 
-  .timer-center{
-    position: relative; z-index: 2;
-    display:flex; flex-direction:column; align-items:center;
-    padding: 0 12px; text-align:center;
-  }
-
   .timer-display{
+    position: absolute;
+    inset: 0;
+    display:flex; align-items:center; justify-content:center;
     font-family: var(--font-display);
     font-variant-numeric: tabular-nums;
-    font-size: 2.7rem;
+    font-size: clamp(2.2rem, 9.5vw, 2.7rem);
     font-weight: 700;
     color: var(--rose-deep);
     transition: color 0.3s ease;
@@ -209,7 +209,9 @@
   .timer-card.state-red .timer-display{ color: var(--red); }
 
   .timer-sub{
-    margin-top: 6px;
+    margin-top: 10px;
+    width: 100%;
+    text-align: center;
     font-variant-caps: small-caps;
     letter-spacing: 0.5px;
     font-size: 0.72rem;
@@ -370,8 +372,17 @@
   .copy-btn:active{ background: var(--line); }
 
   .custom-setup{ display:flex; flex-direction:column; gap:10px; }
-  .custom-row{ display:flex; gap:8px; align-items:center; }
-  .custom-row input[type="text"], .custom-row input[type="number"]{
+  #customSpeakerList{ display:flex; flex-direction:column; gap:10px; }
+  .custom-entry{
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 10px;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .custom-entry-top{ display:flex; gap:8px; align-items:center; }
+  .custom-entry-top input[type="text"]{ flex:1; min-width: 0; }
+  .custom-entry-bottom{ display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+  .custom-entry input[type="text"], .custom-entry input[type="number"]{
     border: 1px solid var(--line);
     border-radius: 10px;
     padding: 8px 10px;
@@ -381,12 +392,11 @@
     background: #fffafc;
     outline:none;
   }
-  .custom-row input[type="text"]{ flex:1; }
-  .custom-row input[type="number"]{ width: 64px; }
-  .custom-row .small-label{ font-style: italic; font-size:0.82rem; color: var(--ink-soft); }
+  .custom-entry input[type="number"]{ width: 58px; }
+  .custom-entry .small-label{ font-style: italic; font-size:0.8rem; color: var(--ink-soft); }
   .remove-speaker-btn{
     background: var(--red-bg); color: var(--red);
-    border:none; border-radius: 8px; width:28px; height:28px; font-weight:700;
+    border:none; border-radius: 8px; width:30px; height:30px; font-weight:700; flex-shrink:0;
   }
   .add-speaker-btn, .apply-custom-btn{
     background: var(--rose); color:white; border:none;
@@ -457,11 +467,9 @@
         <circle class="ring-track" cx="100" cy="100" r="88" stroke-width="12" fill="none"/>
         <circle class="ring-progress" id="ringProgress" cx="100" cy="100" r="88" stroke-width="12" fill="none" stroke-linecap="round" transform="rotate(-90 100 100)"/>
       </svg>
-      <div class="timer-center">
-        <div class="timer-display" id="timerDisplay">5:00</div>
-        <div class="timer-sub" id="timerSub">British Parliamentary (School) · 5:00</div>
-      </div>
+      <div class="timer-display" id="timerDisplay">5:00</div>
     </div>
+    <div class="timer-sub" id="timerSub">British Parliamentary (School) · 5:00</div>
     <div class="poi-marker-note" id="markerNote"></div>
     <div class="timer-controls">
       <button class="btn" id="startPauseBtn">▶ Start</button>
@@ -521,10 +529,24 @@
   let audioCtx = null;
   function getCtx(){
     if(!audioCtx){ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-    if(audioCtx.state === 'suspended') audioCtx.resume();
+    if(audioCtx.state === 'suspended'){ audioCtx.resume(); }
     return audioCtx;
   }
   function isMuted(){ return document.getElementById('muteToggle').checked; }
+
+  function unlockAudio(){
+    const ctx = getCtx();
+    try{
+      const buffer = ctx.createBuffer(1, 1, 22050);
+      const src = ctx.createBufferSource();
+      src.buffer = buffer;
+      src.connect(ctx.destination);
+      if(src.start){ src.start(0); }
+    }catch(e){}
+  }
+  ['touchstart','touchend','mousedown','click'].forEach(function(evt){
+    document.addEventListener(evt, unlockAudio, {once:true, passive:true});
+  });
 
   function tone(freq, duration, type, gainVal, delay){
     if(isMuted()) return;
@@ -712,7 +734,7 @@
       scratchpad.select();
       document.execCommand('copy');
     }
-    copyNotesBtn.textContent = 'Copied!';
+    copyNotesBtn.textContent = 'Copied';
     setTimeout(() => { copyNotesBtn.textContent = 'Copy notes'; }, 1400);
   });
 
@@ -741,14 +763,18 @@
 
   function addCustomSpeakerRow(name, secs){
     const row = document.createElement('div');
-    row.className = 'custom-row';
+    row.className = 'custom-entry';
     row.innerHTML = `
-      <input type="text" class="cs-name" value="${name || ''}" placeholder="Speaker name">
-      <input type="number" class="cs-mins" min="0" value="${Math.floor((secs||300)/60)}">
-      <span class="small-label">min</span>
-      <input type="number" class="cs-secs" min="0" max="59" value="${(secs||300)%60}">
-      <span class="small-label">sec</span>
-      <button class="remove-speaker-btn">×</button>
+      <div class="custom-entry-top">
+        <input type="text" class="cs-name" value="${name || ''}" placeholder="Speaker name">
+        <button class="remove-speaker-btn">×</button>
+      </div>
+      <div class="custom-entry-bottom">
+        <input type="number" class="cs-mins" min="0" value="${Math.floor((secs||300)/60)}">
+        <span class="small-label">min</span>
+        <input type="number" class="cs-secs" min="0" max="59" value="${(secs||300)%60}">
+        <span class="small-label">sec</span>
+      </div>
     `;
     row.querySelector('.remove-speaker-btn').addEventListener('click', () => {
       row.remove();
@@ -762,7 +788,7 @@
   });
 
   applyCustomBtn.addEventListener('click', () => {
-    const rows = Array.from(customSpeakerList.querySelectorAll('.custom-row'));
+    const rows = Array.from(customSpeakerList.querySelectorAll('.custom-entry'));
     if(rows.length === 0) return;
     const names = [];
     const secsArr = [];
@@ -863,7 +889,7 @@
       warnedYellow = true;
       setCardState('state-yellow');
       playWarningBell();
-      markerNote.textContent = "Time's up!";
+      markerNote.textContent = "Time's up";
     }
     if(mainRemaining <= -15 && !warnedRed){
       warnedRed = true;
@@ -1011,7 +1037,7 @@
   const gavelBtn = document.createElement('button');
   gavelBtn.className = 'btn secondary wide';
   gavelBtn.textContent = 'Gavel';
-  gavelBtn.addEventListener('click', playGavel);
+  gavelBtn.addEventListener('click', () => { getCtx(); playGavel(); });
   gavelWrap.appendChild(gavelBtn);
   timerCard.appendChild(gavelWrap);
 
@@ -1028,11 +1054,6 @@
     motionInput.addEventListener('input', () => localStorage.setItem('debateTimerMotion', motionInput.value));
     scratchpad.addEventListener('input', () => localStorage.setItem('debateTimerNotes', scratchpad.value));
   }catch(e){}
-
-  document.addEventListener('touchstart', function once(){
-    getCtx();
-    document.removeEventListener('touchstart', once);
-  }, {once:true});
 
 })();
 </script>

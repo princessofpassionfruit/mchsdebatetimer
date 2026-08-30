@@ -1,0 +1,13 @@
+{
+  "name": "Debate Timer",
+  "short_name": "Debate Timer",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fdf1f5",
+  "theme_color": "#a4536f",
+  "icons": [
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
